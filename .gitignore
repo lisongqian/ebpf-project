@@ -1,0 +1,5 @@
+.idea/
+*_bak
+*.o
+*.so
+*-exec
