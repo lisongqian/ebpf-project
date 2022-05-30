@@ -14,11 +14,8 @@ LOADINCLUDE += -I/kernel-src/samples/bpf
 LOADINCLUDE += -I/kernel-src/tools/lib
 LOADINCLUDE += -I/kernel-src/tools/perf
 LOADINCLUDE += -I/kernel-src/tools/include
-LOADINCLUDE += -I/kernel-src/tools/testing/selftests/bpf
 LIBRARY_PATH = -L/usr/local/lib64
 BPFSO = -lbpf
-
-BPFTEST = /kernel-src/tools/testing/selftests/bpf/trace_helpers.c
 
 CFLAGS += $(shell grep -q "define HAVE_ATTR_TEST 1" /kernel-src/tools/perf/perf-sys.h \
                   && echo "-DHAVE_ATTR_TEST=0")
@@ -33,7 +30,7 @@ build: ${BPFCODE.c} ${BPFLOADER}
 
 bpfload: build
 	clang $(CFLAGS) -o $(EXECABLE) -lelf $(LOADINCLUDE) $(LIBRARY_PATH) $(BPFSO) \
-        $(BPFLOADER) $(BPFTEST)  loader.c
+        $(BPFLOADER)  common/common.c loader.c
 
 $(EXECABLE): bpfload
 
