@@ -4,6 +4,7 @@
 
 #include <linux/bpf.h>
 #include <bpf/bpf_helpers.h>
+//#include <bpf/bpf.h>
 
 #define bpf_printk(fmt, ...)                       \
     ({                                             \
@@ -12,6 +13,9 @@
                          ##__VA_ARGS__);           \
     })
 
+
+extern int bpf_create_map(enum bpf_map_type map_type, int key_size,
+                              int value_size, int max_entries, __u32 map_flags);
 struct bpf_map_def SEC("maps") my_map = {
         .type = BPF_MAP_TYPE_HASH,
         .key_size = sizeof(int),
@@ -24,6 +28,8 @@ static __always_inline  void bpf_map_kern_example() {
 
     int key, value, result;
     key = 1, value = 1234;
+
+    int fd = bpf_create_map(BPF_MAP_TYPE_HASH, sizeof(int), sizeof(int), 100, BPF_F_NO_PREALLOC);
 
     result = bpf_map_update_elem(&my_map, &key, &value, BPF_ANY);
     if (result == 0)
