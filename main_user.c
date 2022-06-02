@@ -26,19 +26,13 @@ static void bpf_map_user_example() {
     else
         printf("Failed to update map with new value(%d): %d (%s) BPF_EXIST\n", fd, result, strerror(errno));
 
-    int read_value;
-    result = bpf_map_lookup_elem(fd, &key, &read_value);
-    if (result == 0)
-        printf("Value read from the map: '%d'\n", read_value);
-    else
-        printf("Failed to read value from the map : %d (%s)\n", result, strerror(errno));
-
-    result = bpf_map_delete_elem(fd, &key);
-    if (result == 0)
-        printf("Element deleted from the map\n");
-    else
-        printf("Failed to delete element from the map : %d (%s)\n", result, strerror(errno));
-
+    int read_value, current_key = -1, next_key;
+    while (bpf_map_get_next_key(fd, &current_key, &next_key) == 0) {
+        bpf_map_lookup_elem(fd, &next_key, &read_value);
+        printf("%d: %d\n", next_key, read_value);
+        bpf_map_delete_elem(fd, &key);
+        current_key = next_key;
+    }
 }
 
 int main(int argc, char **argv) {
