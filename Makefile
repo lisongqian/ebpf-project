@@ -2,38 +2,51 @@ CLANG = clang
 
 EXECABLE = monitor-exec
 
-BPFCODE = bpf_program
+BPF_CODE = bpf_kern
 
 
-BPFTOOLS = /kernel-src/samples/bpf
-BPFLOADER = transplant/bpf_load.c
+#BPFTOOLS = /kernel-src/samples/bpf
+BPF_LOADER = transplant/bpf_load.c
 
-CCINCLUDE += -I/kernel-src/tools/testing/selftests/bpf
+#KERN_INCLUDE += -I/kernel-src/tools/testing/selftests/bpf
 
-LOADINCLUDE += -I/kernel-src/samples/bpf
-LOADINCLUDE += -I/kernel-src/tools/perf
-LOADINCLUDE += -I/kernel-src/tools/include
+USER_INCLUDE += -I/kernel-src/samples/bpf
+USER_INCLUDE += -I/kernel-src/tools/include
+USER_INCLUDE += -I/kernel-src/tools/perf
+
 LIBRARY_PATH = -L/usr/local/lib64
-BPFSO = -lbpf
+
+BPF_SO = -lbpf
+
+COMMON_CODE += common/trace_helpers.c
 
 CFLAGS += $(shell grep -q "define HAVE_ATTR_TEST 1" /kernel-src/tools/perf/perf-sys.h \
                   && echo "-DHAVE_ATTR_TEST=0")
 
-.PHONY: clean $(CLANG) bpfload build
+.PHONY: clean $(CLANG) build_main_kern main_user build_bpf_kern bpf_user
 
 clean:
-	rm -f *.o *.so $(EXECABLE)
+	rm -f *.o *.so $(EXECABLE) main
 
-main:
-	gcc -o main main.c -lbpf -I/kernel-src/tools/lib/
+### 第一章程序
 
-build: ${BPFCODE.c} ${BPFLOADER}
-	$(CLANG) -O2 -target bpf -c $(BPFCODE:=.c) $(CCINCLUDE) -o ${BPFCODE:=.o}
+build_bpf_kern: ${BPF_CODE.c} ${BPF_LOADER}
+	$(CLANG) -O2 -target bpf -c $(BPF_CODE:=.c) $(KERN_INCLUDE) -o ${BPF_CODE:=.o}
 
-bpfload: build
-	$(CLANG) $(CFLAGS) -o $(EXECABLE) -lelf $(LOADINCLUDE) $(LIBRARY_PATH) $(BPFSO) \
-        $(BPFLOADER)  common/common.c loader.c
 
-$(EXECABLE): bpfload
+bpf_user: build_bpf_kern
+	$(CLANG) $(CFLAGS) -o $(EXECABLE) -lelf $(USER_INCLUDE) $(LIBRARY_PATH) $(BPF_SO) \
+        $(BPF_LOADER) $(COMMON_CODE)  bpf_user.c
+
+### 第二章
+
+build_main_kern:main_kern.c ${BPF_LOADER}
+	$(CLANG) -O2 -target bpf -c main_kern.c $(KERN_INCLUDE) -o main_kern.o
+
+main_user: build_main_kern
+	$(CLANG) $(CFLAGS) -o main -lelf $(USER_INCLUDE) $(LIBRARY_PATH) $(BPF_SO) \
+        $(BPF_LOADER) $(COMMON_CODE) main_user.c
+
+$(EXECABLE): bpf_user
 
 .DEFAULT_GOAL := $(EXECABLE)

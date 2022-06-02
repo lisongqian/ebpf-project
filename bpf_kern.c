@@ -2,11 +2,8 @@
 // Created by lisongqian on 2022/5/30.
 //
 #include <linux/bpf.h>
+#include <bpf/bpf_helpers.h>
 
-#define SEC(NAME) __attribute__((section(NAME),used))
-
-static int (*bpf_trace_printk)(const char *fmt, int fmt_size,
-                               ...) = (void *) BPF_FUNC_trace_printk;
 
 SEC("tracepoint/syscalls/sys_enter_execve")
 

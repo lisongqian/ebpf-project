@@ -3,7 +3,6 @@
 #define __BPF_LOAD_H
 
 #include <bpf/bpf.h>
-//#include <uapi/linux/bpf.h>
 
 #define MAX_MAPS 32
 #define MAX_PROGS 32
