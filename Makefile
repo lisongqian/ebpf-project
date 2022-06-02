@@ -11,7 +11,6 @@ BPFLOADER = transplant/bpf_load.c
 CCINCLUDE += -I/kernel-src/tools/testing/selftests/bpf
 
 LOADINCLUDE += -I/kernel-src/samples/bpf
-LOADINCLUDE += -I/kernel-src/tools/lib
 LOADINCLUDE += -I/kernel-src/tools/perf
 LOADINCLUDE += -I/kernel-src/tools/include
 LIBRARY_PATH = -L/usr/local/lib64
@@ -25,11 +24,14 @@ CFLAGS += $(shell grep -q "define HAVE_ATTR_TEST 1" /kernel-src/tools/perf/perf-
 clean:
 	rm -f *.o *.so $(EXECABLE)
 
+main:
+	gcc -o main main.c -lbpf -I/kernel-src/tools/lib/
+
 build: ${BPFCODE.c} ${BPFLOADER}
 	$(CLANG) -O2 -target bpf -c $(BPFCODE:=.c) $(CCINCLUDE) -o ${BPFCODE:=.o}
 
 bpfload: build
-	clang $(CFLAGS) -o $(EXECABLE) -lelf $(LOADINCLUDE) $(LIBRARY_PATH) $(BPFSO) \
+	$(CLANG) $(CFLAGS) -o $(EXECABLE) -lelf $(LOADINCLUDE) $(LIBRARY_PATH) $(BPFSO) \
         $(BPFLOADER)  common/common.c loader.c
 
 $(EXECABLE): bpfload
