@@ -8,10 +8,10 @@ BPF_CODE = bpf_kern
 #BPFTOOLS = /kernel-src/samples/bpf
 BPF_LOADER = transplant/bpf_load.c
 
-#KERN_INCLUDE += -I/kernel-src/tools/testing/selftests/bpf
+KERN_INCLUDE += -I/kernel-src/tools/testing/selftests/bpf
 
-USER_INCLUDE += -I/kernel-src/samples/bpf
 USER_INCLUDE += -I/kernel-src/tools/include
+USER_INCLUDE += -I/kernel-src/samples/bpf
 USER_INCLUDE += -I/kernel-src/tools/perf
 
 LIBRARY_PATH = -L/usr/local/lib64
@@ -35,7 +35,7 @@ build_bpf_kern: ${BPF_CODE.c} ${BPF_LOADER}
 
 
 bpf_user: build_bpf_kern
-	$(CLANG) $(CFLAGS) -o $(EXECABLE) -lelf $(USER_INCLUDE) $(LIBRARY_PATH) $(BPF_SO) \
+	$(CLANG) $(CFLAGS) -o $(EXECABLE)-1 -lelf $(USER_INCLUDE) $(LIBRARY_PATH) $(BPF_SO) \
         $(BPF_LOADER) $(COMMON_CODE)  bpf_user.c
 
 ### 第二章
@@ -43,10 +43,10 @@ bpf_user: build_bpf_kern
 build_main_kern:main_kern.c ${BPF_LOADER}
 	$(CLANG) -O2 -target bpf -c main_kern.c $(KERN_INCLUDE) -o main_kern.o
 
-main_user: build_main_kern
-	$(CLANG) $(CFLAGS) -o main -lelf $(USER_INCLUDE) $(LIBRARY_PATH) $(BPF_SO) \
+main_user:
+	$(CLANG) $(CFLAGS) -o $(EXECABLE)-2 -lelf $(USER_INCLUDE) $(LIBRARY_PATH) $(BPF_SO) \
         $(BPF_LOADER) $(COMMON_CODE) main_user.c
 
-$(EXECABLE): bpf_user
+$(EXECABLE): main_user
 
 .DEFAULT_GOAL := $(EXECABLE)
