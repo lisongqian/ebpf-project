@@ -4,4 +4,4 @@
 ### Environment
 
 1. Ubuntu 20.04 LTS
-2. linux kernel 5.13.0-41-generic
+2. Linux ubuntu 5.15.0-051500-generic
