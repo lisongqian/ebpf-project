@@ -84,7 +84,10 @@ int get_map_from_file() {
 }
 
 int main(int argc, char **argv) {
-    get_map_from_file();
+    bpf_map_user_example();
+
+//    save_map2file();
+//    get_map_from_file();
     return 0;
 }
 
