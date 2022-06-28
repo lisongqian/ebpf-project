@@ -49,6 +49,32 @@ int bpf_program(struct pt_regs *ctx) {
     return 0;
 }
 
+/**
+ * 程序数组映射
+ */
+struct bpf_map_def SEC("maps") programs = {
+        .type = BPF_MAP_TYPE_ARRAY,
+        .key_size = 4,
+        .value_size = 4,
+        .max_entries = 1024,
+};
+
+//int key = 1;
+//struct bpf_insn prog[] = {
+//        BPF_MOV64_IMM(BPF_REG_0,0), // assign r0 = 0
+//        BPF_EXIT_INSN(),            // return r0
+//};
+
+SEC("kprobe/seccomp_phase1")
+int bpf_kprobe_program(struct pt_regs *ctx) {
+    int key = 1;
+    /* dispatch into next BPF program */
+    bpf_tail_call(ctx, &programs, &key);
+    /* fall through  when the program descripttor is not in the map */
+    char fmt[] = "missing program in prog_array map\n";
+    bpf_trace_printk(fmt, sizeof(fmt));
+    return 0;
+}
 
 static __always_inline  void bpf_map_kern_example() {
 
